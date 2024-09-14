@@ -4,15 +4,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-def descriptive_statistics(df,columns):
+def descriptive_statistics(df, columns):
+    # Calculates descriptive statistics for specified columns in a DataFrame.
+    results = {}
     for col in columns:
-        print("##############",col)
-        # Calculate descriptive statistics 
         descriptive_stats = df[col].describe()
+        results[col] = descriptive_stats.to_dict()
 
-        
-        # Print the results
-        print("Descriptive Statistics:\n", descriptive_stats)
+    return results
 
 
 def show_histograms(df, columns):
@@ -99,6 +98,44 @@ def analyze_geographic_trends(df):
     plt.legend(title='PostalCode', bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
     plt.show()
+
+
+
+def visualize_descriptive_statistics(stats):
+    # Visualizes descriptive statistics for each column in a dictionary.
+    for col, stats_dict in stats.items():
+        # Extract relevant statistics
+        count = stats_dict['count']
+        mean = stats_dict['mean']
+        std = stats_dict['std']
+        min_value = stats_dict['min']
+        q25 = stats_dict['25%']
+        q50 = stats_dict['50%']
+        q75 = stats_dict['75%']
+        max_value = stats_dict['max']
+
+        # Create a figure and axes
+        fig, ax = plt.subplots()
+
+        # Plot the statistics as a bar chart
+        bars = ax.bar([1, 2, 3, 4, 5, 6, 7, 8], [count, mean, std, min_value, q25, q50, q75, max_value])
+
+        # Set labels and title
+        ax.set_xticks([1, 2, 3, 4, 5, 6, 7, 8])
+        ax.set_xticklabels(['Count', 'Mean', 'Std', 'Min', '25%', '50%', '75%', 'Max'])
+        ax.set_ylabel(col)
+        ax.set_title(f'Descriptive Statistics for {col}')
+
+        # Add labels to the bars
+        for bar in bars:
+            height = bar.get_height()
+            ax.annotate(f'{height:.2f}', xy=(bar.get_x() + bar.get_width() / 2, height), ha='center', va='bottom')
+
+        # Show the plot
+        # plt.savefig(f'screenshots/discriptive_{col}')
+        plt.show()
+
+
 
 def outlier_detection(df, columns):
 
