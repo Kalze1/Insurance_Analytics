@@ -21,6 +21,21 @@ def count_missing_values(df):
     missing_percentage = (missing_count / len(df)) * 100
     return missing_count , missing_percentage
 
+def missing_values(df):
+    
+        total_rows = df.shape[0]
+
+        data = {'columns':[],
+                'missing_values' : [],
+                'missing_values_percentage':[]}
+        missing = pd.DataFrame(data)
+
+        # missing['columns']= df.columns
+        missing['missing_values'] = df.isnull().sum()
+        missing['missing_values_percentage'] = (missing['missing_values'] / total_rows) * 100
+        return missing 
+
+
 def replace_outliers_with_mean(df, columns):
     for col in columns:
         Q1 = df[col].quantile(0.25)
@@ -58,7 +73,12 @@ def replace_outliers_with_percentile(df, columns, percentile=0.95):
 
     return df
 
-
+def remove_null_rows(df, columns):
+   
+    # Drop rows where specified columns have null values
+    cleaned_df = df.dropna(subset=columns)
+    
+    return cleaned_df
 
 
 
