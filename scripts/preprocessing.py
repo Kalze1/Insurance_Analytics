@@ -1,17 +1,30 @@
 import pandas as pd 
 import numpy as np
 
+
+
 def replace_missing_with_mean(df, columns):
-   
     for column in columns:
+        # Handle infinite values
+        df[column] = df[column].replace([np.inf, -np.inf], np.nan)
+        # Impute missing values with mean
         df[column] = df[column].fillna(df[column].mean())
     return df
 
-
 def replace_missing_with_median(df, columns):
-   
     for column in columns:
+        # Handle infinite values
+        df[column] = df[column].replace([np.inf, -np.inf], np.nan)
+        # Impute missing values with median
         df[column] = df[column].fillna(df[column].median())
+    return df
+
+def replace_missing_with_mode(df, columns):
+    for column in columns:
+        # Handle infinite values
+        df[column] = df[column].replace([np.inf, -np.inf], np.nan)
+        # Impute missing values with mode
+        df[column] = df[column].fillna(df[column].mode().iloc[0])
     return df
 
 
