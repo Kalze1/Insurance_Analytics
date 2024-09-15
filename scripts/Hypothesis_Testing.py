@@ -1,7 +1,7 @@
 # A/B Hypothesis Testing methods
 
 import pandas as pd
-from scipy.stats import chi2_contingency
+from scipy.stats import chi2_contingency, f_oneway, ttest_ind
 
 
 def AB_haypothe(df,col):
@@ -27,7 +27,8 @@ def calculate_profit_margin_and_anova(df):
    
 
     # Calculate profit margin
-    df['ProfitMargin'] = (df['TotalPremiums'] - df['TotalClaims']) / df['TotalPremiums']
+    df['ProfitMargin'] = (df.get('TotalPremiums', 0) - df.get('TotalClaims', 0)) / df.get('TotalPremiums', 0)
+    df['LossRatio'] = df['TotalClaims'] / df['SumInsured']
 
     # Group df by zip code and calculate average profit margin
     grouped_df = df.groupby("PostalCode")["ProfitMargin"].mean()
