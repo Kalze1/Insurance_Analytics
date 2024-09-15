@@ -3,13 +3,15 @@
 import pandas as pd
 from scipy.stats import chi2_contingency, f_oneway, ttest_ind
 
+from scripts.preprocessing import replace_missing_with_mean
+
 
 def AB_haypothe(df,col):
     # Calculate loss ratio
     df["LossRatio"] = df["TotalClaims"] / df["SumInsured"]
 
     # Define high-risk threshold
-    high_risk_threshold = 1
+    high_risk_threshold = 128.8991
 
     # Create high-risk indicator
     df["HighRisk"] = df["LossRatio"] > high_risk_threshold
@@ -23,18 +25,27 @@ def AB_haypothe(df,col):
     return chi2, p_value, dof, expected
 
 
+
+
 def calculate_profit_margin_and_anova(df):
-   
-
     # Calculate profit margin
-    df['ProfitMargin'] = (df.get('TotalPremiums', 0) - df.get('TotalClaims', 0)) / df.get('TotalPremiums', 0)
+    df['ProfitMargin'] = (df['TotalPremium'] - df['TotalClaims']) / df['TotalPremium']
     df['LossRatio'] = df['TotalClaims'] / df['SumInsured']
+    
+    # Replace missing values in ProfitMargin and LossRatio columns
+    df = replace_missing_with_mean(df, ['ProfitMargin', 'LossRatio'])
 
-    # Group df by zip code and calculate average profit margin
-    grouped_df = df.groupby("PostalCode")["ProfitMargin"].mean()
+    # Group df by zip code and calculate average profit margin per group
+    grouped_df = df.groupby("PostalCode")["ProfitMargin"].apply(list)
 
-    # Perform ANOVA
-    f_statistic, p_value = f_oneway(*grouped_df)
+    # Remove groups with less than two values (ANOVA requires at least two groups with multiple observations)
+    grouped_df = grouped_df[grouped_df.apply(lambda x: len(x) > 1)]
+
+    # Perform ANOVA if there are at least two groups
+    if len(grouped_df) > 1:
+        f_statistic, p_value = f_oneway(*grouped_df)
+    else:
+        f_statistic, p_value = None, None  # Not enough groups for ANOVA
 
     return f_statistic, p_value
 
