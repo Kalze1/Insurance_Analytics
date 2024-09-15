@@ -1,2 +1,4 @@
 data/
 screenshots/
+__pycache__/
+.dvc/
