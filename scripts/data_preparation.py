@@ -5,40 +5,29 @@ from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 from sklearn.impute import SimpleImputer
 from datetime import datetime
 
+import pandas as pd
+from datetime import datetime
+from sklearn.preprocessing import LabelEncoder
 
-
-def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
+def calculate_vehicle_age(df: pd.DataFrame, current_year: int = None) -> pd.DataFrame:
     """
-    Preprocess the data by handling non-numeric columns:
-    - Convert date columns to numeric (VehicleAge).
-    - Encode categorical columns using Label Encoding or One-Hot Encoding.
-    """
-    # Convert 'VehicleIntroDate' to 'VehicleAge'
-    if 'VehicleIntroDate' in df.columns:
-        df['VehicleIntroDate'] = pd.to_datetime(df['VehicleIntroDate'], errors='coerce')
-        current_year = datetime.now().year
-        df['VehicleAge'] = current_year - df['VehicleIntroDate'].dt.year
-        df = df.drop(columns=['VehicleIntroDate'])  # Drop the original date column
+    Adds a 'VehicleAge' column based on the 'RegistrationYear' column.
     
-    # Identify categorical columns (non-numeric columns)
-    categorical_columns = df.select_dtypes(include=['object']).columns
-    
-    # Apply Label Encoding for binary categorical columns
-    binary_columns = ['IsVATRegistered', 'NewVehicle', 'WrittenOff', 'Rebuilt', 'Converted', 
-                      'AlarmImmobiliser', 'TrackingDevice', 'CapitalOutstanding']
-    
-    for col in binary_columns:
-        if col in df.columns:
-            le = LabelEncoder()
-            df[col] = le.fit_transform(df[col].astype(str))  # Ensure data type is correct
-    
-    # Apply One-Hot Encoding for multi-class categorical columns
-    df = pd.get_dummies(df, drop_first=True)
-    
-    # Drop any remaining non-numeric columns that cannot be processed
-    df = df.select_dtypes(exclude=['object', 'datetime'])
+    Args:
+    df (pd.DataFrame): Input DataFrame containing 'RegistrationYear'.
+    current_year (int): Optionally specify the current year. Defaults to the current year.
 
+    Returns:
+    pd.DataFrame: Updated DataFrame with 'VehicleAge' column.
+    """
+    if current_year is None:
+        current_year = datetime.now().year  # Default to the current year
+
+    # Calculate vehicle age based on 'RegistrationYear'
+    df['VehicleAge'] = current_year - df['RegistrationYear']
+    
     return df
+
 
 # Feature Engineering
 def feature_engineering(df: pd.DataFrame):
@@ -54,33 +43,43 @@ def feature_engineering(df: pd.DataFrame):
     return df
 
 
+
+
 def encode_categorical_data(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Encodes categorical data using One-Hot Encoding for multi-class features 
+    Encodes categorical data using One-Hot Encoding for multi-class features
     and Label Encoding for binary features.
     """
 
     # List of binary categorical columns (label encoding)
-    binary_columns = ['IsVATRegistered', 'NewVehicle', 'WrittenOff', 
-                      'Rebuilt', 'Converted', 'AlarmImmobiliser', 
-                      'TrackingDevice', 'CapitalOutstanding']
-    
+    binary_columns = ['NewVehicle', 'WrittenOff', 'Rebuilt', 'Converted', 
+                      'AlarmImmobiliser', 'TrackingDevice', 'CapitalOutstanding']
+
+    # Handle potential non-numeric string values in binary columns
+    for col in binary_columns:
+        if df[col].dtype == 'object':
+            # Check if there are any non-numeric values and handle them
+            if df[col].str.isnumeric().all():
+                df[col] = df[col].astype(int)  # Convert if all values are numeric
+            else:
+                # Example: map non-numeric values to integers (custom mapping may be required)
+                df[col] = df[col].map({
+                    'Yes': 1, 'No': 0, 'More than 6 months': 2, 'Less than 6 months': 1,  # Adjust this mapping based on your data
+                    'None': 0
+                }).fillna(0)  # Fallback for unmapped values
+
     # Label encode binary columns
     for col in binary_columns:
         le = LabelEncoder()
-        df[col] = le.fit_transform(df[col].astype(int))  # Ensure object type conversion
+        df[col] = le.fit_transform(df[col].astype(int))  # Ensure type conversion if necessary
 
-    # List of multi-class categorical columns (one-hot encoding)
-    multi_class_columns = ['Citizenship', 'LegalType', 'Title', 'Language', 
-                           'Bank', 'AccountType', 'MaritalStatus', 'Gender', 
-                           'Country', 'Province', 'MainCrestaZone', 'SubCrestaZone', 
-                           'ItemType', 'VehicleType', 'make', 'Model', 'bodytype', 
-                           'TermFrequency', 'ExcessSelected', 'CoverCategory', 
-                           'CoverType', 'CoverGroup', 'Section', 'Product', 
-                           'StatutoryClass', 'StatutoryRiskType']
+    
+    # Identify categorical columns
+    categorical_cols = df.select_dtypes(include=['object']).columns
 
-    # One-hot encode the multi-class categorical columns
-    df = pd.get_dummies(df, columns=multi_class_columns, drop_first=True)
+    # Apply one-hot encoding to categorical columns
+    df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
+
     
     return df
 

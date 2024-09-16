@@ -4,6 +4,11 @@ from datetime import datetime
 
 
 
+
+
+
+
+
 def replace_missing_with_mean(df, columns):
     for column in columns:
         # Handle infinite values
