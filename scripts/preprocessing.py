@@ -1,13 +1,35 @@
 import pandas as pd 
 import numpy as np
 from datetime import datetime
+import pandas as pd
+from scipy import stats
 
 
 
 
 
 
-
+def remove_outliers(df, threshold=0.01):
+    """
+    Remove outliers from the DataFrame based on Z-scores.
+    
+    Parameters:
+    df (pd.DataFrame): The input DataFrame.
+    threshold (float): The Z-score threshold to identify outliers.
+    
+    Returns:
+    pd.DataFrame: DataFrame with outliers removed.
+    """
+    # Calculate Z-scores
+    z_scores = stats.zscore(df.select_dtypes(include=['float64', 'int64']))
+    
+    # Create a boolean mask for outliers
+    outliers_mask = (abs(z_scores) > threshold).all(axis=1)
+    
+    # Filter out the outliers
+    df_cleaned = df[~outliers_mask]
+    
+    return df_cleaned
 
 def replace_missing_with_mean(df, columns):
     for column in columns:
