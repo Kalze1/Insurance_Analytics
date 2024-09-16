@@ -1,5 +1,6 @@
 import pandas as pd 
 import numpy as np
+from datetime import datetime
 
 
 
@@ -25,6 +26,25 @@ def replace_missing_with_mode(df, columns):
         df[column] = df[column].replace([np.inf, -np.inf], np.nan)
         # Impute missing values with mode
         df[column] = df[column].fillna(df[column].mode().iloc[0])
+    return df
+
+
+def convert_vehicle_intro_date_to_age(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert VehicleIntroDate to VehicleAge by calculating the difference between the current year and the vehicle intro year.
+    """
+    # Ensure 'VehicleIntroDate' is a datetime column
+    df['VehicleIntroDate'] = pd.to_datetime(df['VehicleIntroDate'], errors='coerce')
+    
+    # Get the current year
+    current_year = datetime.now().year
+    
+    # Calculate vehicle age
+    df['VehicleAge'] = current_year - df['VehicleIntroDate'].dt.year
+    
+    # Drop the original 'VehicleIntroDate' column (optional)
+    df = df.drop(columns=['VehicleIntroDate'])
+    
     return df
 
 
