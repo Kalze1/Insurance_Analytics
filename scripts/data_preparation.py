@@ -52,8 +52,8 @@ def encode_categorical_data(df: pd.DataFrame) -> pd.DataFrame:
     """
 
     # List of binary categorical columns (label encoding)
-    binary_columns = ['NewVehicle', 'WrittenOff', 'Rebuilt', 'Converted', 
-                      'AlarmImmobiliser', 'TrackingDevice', 'CapitalOutstanding']
+    binary_columns = ['NewVehicle', 'Rebuilt', 'Converted' 
+                       , 'CapitalOutstanding']
 
     # Handle potential non-numeric string values in binary columns
     for col in binary_columns:
